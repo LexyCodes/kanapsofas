@@ -58,12 +58,16 @@ exports.orderProducts = (req, res, next) => {
   }
   let queries = [];
   for (let productId of req.body.products) {
+    console.log(req.body);
+    console.log(productId);
     const queryPromise = new Promise((resolve, reject) => {
-      Product.findById(productId).then(
+      Product.findById(productId.productId).then(
         (product) => {
+          console.log(product);
           if (!product) {
             reject('Product not found: ' + productId);
           }
+          console.log("product loop");
           product.imageUrl = req.protocol + '://' + req.get('host') + '/images/' + product.imageUrl;
           resolve(product);
         }
@@ -75,6 +79,7 @@ exports.orderProducts = (req, res, next) => {
     });
     queries.push(queryPromise);
   }
+  console.log("before return");
   Promise.all(queries).then(
     (products) => {
       const orderId = uuid();

@@ -148,8 +148,9 @@ main {
 	padding-top: 25px;
 	width: 100%;
 	border-radius: 10px;
+	text-align: center;
 }
-.items article img {
+.items img {
 	width: 160px;
 	height: 160px;
 	object-fit: cover;
@@ -158,11 +159,9 @@ main {
 .items article h3 {
 	font-size: 22px;
 	font-weight: 700;
-	text-align: center;
 	text-transform: uppercase;
 }
 .items article p {
-	text-align: center;
 	padding-left: 23px;
 	padding-right: 23px;
 	box-sizing: border-box;
