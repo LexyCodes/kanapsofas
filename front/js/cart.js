@@ -4,6 +4,7 @@ let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
 // Function to save cart items to LocalStorage
 function saveCartItems(items) {
   localStorage.setItem('cartItems', JSON.stringify(items));
+  updateCartCounter(); // Update the cart counter after saving the items
 }
 
 // Function to display cart items in the cart section
@@ -102,8 +103,11 @@ function displayCartItems() {
 // Update the cart counter on quantity change or item delete
 function updateCartCounter() {
   const cartCounter = document.getElementById('cartCounter');
-  cartCounter.textContent = cartItems.reduce((total, item) => total + item.quantity, 0).toString();
+  const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
+  cartCounter.textContent = totalQuantity.toString();
 }
+
+
 
 // Delete item from the cart
 function deleteCartItem(article) {
@@ -260,22 +264,22 @@ function initializeCartPage() {
     }
   })
   .then((data) => {
-    console.log(data);
-    // Handle the response data
     const orderId = data.orderId; // Extract the order ID from the response data
-
+  
     // Store the order ID in LocalStorage or use it as needed
-    window.location.href = `../html/confirmation.html?orderId=${orderId}`;
+    const confirmationPageURL = `../html/confirmation.html?orderId=${orderId}`;
+    window.location.href = confirmationPageURL;
+  
     console.log('Order ID:', orderId);
-
+  
     // Clear the cart and display a success message
     cartItems = [];
     saveCartItems(cartItems);
     displayCartItems();
     alert('Order placed successfully! Thank you for shopping with us.');
-
+  
     // Redirect to the confirmation page
-    window.location.href = '../html/confirmation.html';
+    window.location.href = confirmationPageURL;
   })
   .catch((error) => {
     // Handle the error
