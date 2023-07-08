@@ -3,7 +3,14 @@ let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
 
 // Function to save cart items to LocalStorage
 function saveCartItems(items) {
-  localStorage.setItem('cartItems', JSON.stringify(items));
+  const itemsWithoutPrice = items.map((item) => {
+    return {
+      productId: item.productId,
+      color: item.color,
+      quantity: item.quantity,
+    };
+  });
+  localStorage.setItem('cartItems', JSON.stringify(itemsWithoutPrice));
   updateCartCounter(); // Update the cart counter after saving the items
 }
 
@@ -11,6 +18,8 @@ function saveCartItems(items) {
 function displayCartItems() {
   const cartItemsContainer = document.getElementById('cart__items');
   cartItemsContainer.innerHTML = '';
+
+  let totalPrice = 0; // Initialize total price
 
   cartItems.forEach((item) => {
     // Create an article element to hold each cart item
@@ -83,6 +92,10 @@ function displayCartItems() {
 
     // Append the cart item to the cart items container
     cartItemsContainer.appendChild(article);
+
+    // Calculate the item total price
+    const itemTotalPrice = item.price * item.quantity;
+    totalPrice += itemTotalPrice;
   });
 
   // Update the total quantity and price
@@ -90,10 +103,8 @@ function displayCartItems() {
   const totalPriceElement = document.getElementById('totalPrice');
 
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
-  const totalPrice = cartItems.reduce((total, item) => total + item.quantity * item.price, 0);
-
   totalQuantityElement.textContent = totalQuantity;
-  totalPriceElement.textContent = totalPrice.toFixed(2);
+  totalPriceElement.textContent = `€${totalPrice.toFixed(2)}`;
 
   // Reattach event listeners
   addDeleteButtonListeners();
@@ -106,8 +117,6 @@ function updateCartCounter() {
   const totalQuantity = cartItems.reduce((total, item) => total + item.quantity, 0);
   cartCounter.textContent = totalQuantity.toString();
 }
-
-
 
 // Delete item from the cart
 function deleteCartItem(article) {
@@ -202,13 +211,19 @@ function initializeCartPage() {
     cityErrorMsg.textContent = '';
     emailErrorMsg.textContent = '';
 
-    if (firstName === '') {
-      firstNameErrorMsg.textContent = 'Please enter your first name.';
+    // Validation of expressions
+    const alphabeticRegex = /^[A-Za-z]+$/;
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+    let hasErrors = false; // Track if any errors occurred
+
+    if (!firstName.match(alphabeticRegex)) {
+      firstNameErrorMsg.textContent = 'Please enter a valid first name.';
       return;
     }
 
-    if (lastName === '') {
-      lastNameErrorMsg.textContent = 'Please enter your last name.';
+    if (!lastName.match(alphabeticRegex)) {
+      lastNameErrorMsg.textContent = 'Please enter a valid last name.';
       return;
     }
 
@@ -222,8 +237,13 @@ function initializeCartPage() {
       return;
     }
 
-    if (email === '') {
-      emailErrorMsg.textContent = 'Please enter your email address.';
+    if (!email.match(emailRegex)) {
+      emailErrorMsg.textContent = 'Please enter a valid email address.';
+      return;
+    }
+
+    if (hasErrors) {
+      // If any errors occurred, prevent form submission
       return;
     }
 
@@ -247,45 +267,45 @@ function initializeCartPage() {
 
     // Send the order data to the server
     fetch('http://localhost:3000/api/products/order', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(order),
-})
-  .then((response) => {
-    console.log(response);
-    if (response.ok) { 
-      // Order created successfully
-      return response.json();
-    } else {
-      // Handle error response
-      throw new Error('Order creation failed.');
-    }
-  })
-  .then((data) => {
-    const orderId = data.orderId; // Extract the order ID from the response data
-  
-    // Store the order ID in LocalStorage or use it as needed
-    const confirmationPageURL = `../html/confirmation.html?orderId=${orderId}`;
-    window.location.href = confirmationPageURL;
-  
-    console.log('Order ID:', orderId);
-  
-    // Clear the cart and display a success message
-    cartItems = [];
-    saveCartItems(cartItems);
-    displayCartItems();
-    alert('Order placed successfully! Thank you for shopping with us.');
-  
-    // Redirect to the confirmation page
-    window.location.href = confirmationPageURL;
-  })
-  .catch((error) => {
-    // Handle the error
-    console.error(error);
-    alert('Failed to place the order. Please try again.');
-  });
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(order),
+    })
+      .then((response) => {
+        console.log(response);
+        if (response.ok) {
+          // Order created successfully
+          return response.json();
+        } else {
+          // Handle error response
+          throw new Error('Order creation failed.');
+        }
+      })
+      .then((data) => {
+        const orderId = data.orderId; // Extract the order ID from the response data
+
+        // Store the order ID in LocalStorage or use it as needed
+        const confirmationPageURL = `../html/confirmation.html?orderId=${orderId}`;
+        window.location.href = confirmationPageURL;
+
+        console.log('Order ID:', orderId);
+
+        // Clear the cart and display a success message
+        cartItems = [];
+        saveCartItems(cartItems);
+        displayCartItems();
+        alert('Order placed successfully! Thank you for shopping with us.');
+
+        // Redirect to the confirmation page
+        window.location.href = confirmationPageURL;
+      })
+      .catch((error) => {
+        // Handle the error
+        console.error(error);
+        alert('Failed to place the order. Please try again.');
+      });
   });
 }
 
